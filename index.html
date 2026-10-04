@@ -17,7 +17,11 @@
   <body class="bg-pink-50/40 text-slate-900 font-sans antialiased selection:bg-pink-500 selection:text-white">
     <div id="root"></div>
     <!-- JS Compilé (Module) -->
-  <script type="module" src="/Cabinet-/Firebase.sync.js"></script>
-  <script type="module" src="script.js"></script>
+  <script type="module">
+  import { startSync } from "./Firebase.sync.js";
+  await startSync();            // نستنّاو el données ywaslou 9bal el app
+  await import("./script.js");  // ba3d nel3bou el React
+</script>
   </body> 
 </html>
+ 

@@ -105,3 +105,62 @@ window.FirebaseCabinet = {
 };
 
 console.log("🔥 Firebase Cabinet connecté !");
+// ===============================
+// BRIDGE localStorage <-> Firebase
+// ===============================
+const KEYS = [
+  "doc_patients_v2", "doc_appointments_v2", "doc_consultations_v2",
+  "doc_prescriptions_v2", "doc_documents_v2", "doc_clinical_notes_v2",
+  "doc_invoices_v2", "doc_notifications_v2", "doc_audit_logs_v2",
+  "doc_settings_v3"
+];
+
+let lastJson = "";
+
+function readLocal() {
+  const o = {};
+  KEYS.forEach(k => (o[k] = localStorage.getItem(k)));
+  return JSON.stringify(o);
+}
+
+function writeLocal(json) {
+  const o = JSON.parse(json);
+  KEYS.forEach(k => {
+    if (o[k] !== null && o[k] !== undefined) localStorage.setItem(k, o[k]);
+  });
+}
+
+export async function startSync() {
+  // 1) chargement initial (avant que React démarre)
+  const remote = await loadCabinetData();
+  if (remote && remote.json) {
+    lastJson = remote.json;
+    writeLocal(remote.json);
+  } else {
+    lastJson = readLocal();
+    await saveCabinetData({ json: lastJson, updatedAt: Date.now() });
+  }
+
+  // 2) envoyer chaque changement local vers Firebase
+  const originalSetItem = localStorage.setItem.bind(localStorage);
+  let timer = null;
+  localStorage.setItem = (k, v) => {
+    originalSetItem(k, v);
+    if (!KEYS.includes(k)) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      const json = readLocal();
+      if (json === lastJson) return;
+      lastJson = json;
+      saveCabinetData({ json, updatedAt: Date.now() });
+    }, 800);
+  };
+
+  // 3) si l'autre appareil change quelque chose → recharger
+  listenCabinetData(remote => {
+    if (!remote || !remote.json || remote.json === lastJson) return;
+    lastJson = remote.json;
+    writeLocal(remote.json);
+    location.reload();
+  });
+} 
