@@ -5,7 +5,7 @@ async function addPatient(patientData) {
     if (!currentData || !Array.isArray(currentData.patients)) {
         currentData = { patients: [] };
     }
-    
+     
     // زيد المريض الجديد للقائمة
     currentData.patients.push(patientData);
 
