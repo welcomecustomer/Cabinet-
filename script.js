@@ -1,3 +1,95 @@
+// داتا تجريبية للتأكد أن الحفظ يخدم
+async function testFirebaseSave() {
+    if (!window.FirebaseCabinet) return;
+
+    const testData = {
+        message: "تجربة اتصال ناجحة من التطبيق!",
+        time: new Date().toISOString()
+    };
+
+    const result = await window.FirebaseCabinet.saveCabinetData(testData);
+    if (result) {
+        console.log("✅ تم حفظ داتا التجربة في الفايربيس بنجاح!");
+    }
+}
+
+// استدعيها بعد ما يتحمل التطبيق
+document.addEventListener("DOMContentLoaded", () => {
+    testFirebaseSave();
+});
+async function initApp() {
+    console.log("جاري التحقق من اتصال Firebase...");
+
+    // نتأكدوا أن FirebaseCabinet موجود ووقتها نجموا نستعملوه
+    if (!window.FirebaseCabinet) {
+        console.error("❌ ملف Firebase.sync.js لم يتم تحميله بشكل صحيح!");
+        return;
+    }
+
+    console.log("جاري تحميل البيانات من Firebase...");
+    const savedData = await window.FirebaseCabinet.loadCabinetData();
+    
+    if (savedData) {
+        console.log("✅ لقينا بيانات مخزنة:", savedData);
+        // حط الكود متاعك هنا باش تعبي البيانات في الواجهة
+    } else {
+        console.log("ℹ️ ما فمش بيانات قديمة.");
+    }
+
+    // الاستماع للتغييرات في الوقت الفعلي
+    window.FirebaseCabinet.listenCabinetData((newData) => {
+        console.log("🔄 تم تحديث البيانات من جهاز آخر:", newData);
+    });
+}
+
+// تشغيل التطبيق أول ما تحضر الصفحة
+document.addEventListener("DOMContentLoaded", () => {
+    initApp();
+});
+// 1. وقت التحميل: جيب الداتا الحالية من Firebase وحطها في الشاشة
+async function loadDataOnStart() {
+    if (!window.FirebaseCabinet) return;
+
+    const data = await window.FirebaseCabinet.loadCabinetData();
+    if (data) {
+        console.ق("📥 تم جلب البيانات:", data);
+        // حط هنا الكود اللي يعبي الداتا في الـ HTML متاعك (مثلاً يعبي جدول المرضى أو القائمة)
+        updateUI(data);
+    }
+}
+
+// 2. المزامنة الفورية (Real-time): لو جهاز آخر (مثلاً التليفون) بدل حاجة، الـ PC يتحدث وحده في نفس اللحظة
+function enableRealtimeSync() {
+    if (!window.FirebaseCabinet) return;
+
+    window.FirebaseCabinet.listenCabinetData((newData) => {
+        console.log("🔄 وصل تحديث جديد من جهاز آخر!");
+        // حدث الواجهة مباشرة بالداتا الجديدة
+        updateUI(newData);
+    });
+}
+
+// 3. وقت المستخدم يزيد أو يبدل حاجة (مثلاً يضغط على زر حفظ)
+async function saveDataFromDevice(appData) {
+    if (!window.FirebaseCabinet) return;
+
+    // ابعث الداتا للفايربيس، وهكا تو تتبعت لكل الأجهزة (تليفون + PC)
+    const success = await window.FirebaseCabinet.saveCabinetData(appData);
+    if (success) {
+        console.log("✅ تم حفظ البيانات وإرسالها لبقية الأجهزة بنجاح");
+    }
+}
+
+// دالة وهمية لتحديث الواجهة (بدلها بالشيء اللي عندك في مشروعك)
+function updateUI(data) {
+    // مثال: عرض الداتا أو تحديث عناصر الـ HTML
+}
+
+// تشغيل الوظائف أول ما تحضر الصفحة
+document.addEventListener("DOMContentLoaded", () => {
+    loadDataOnStart();
+    enableRealtimeSync();
+});
 (function(){const S=document.createElement("link").relList;if(S&&S.supports&&S.supports("modulepreload"))return;for(const q of document.querySelectorAll('link[rel="modulepreload"]'))O(q);new MutationObserver(q=>{for(const k of q)if(k.type==="childList")for(const oe of k.addedNodes)oe.tagName==="LINK"&&oe.rel==="modulepreload"&&O(oe)}).observe(document,{childList:!0,subtree:!0});function Y(q){const k={};return q.integrity&&(k.integrity=q.integrity),q.referrerPolicy&&(k.referrerPolicy=q.referrerPolicy),q.crossOrigin==="use-credentials"?k.credentials="include":q.crossOrigin==="anonymous"?k.credentials="omit":k.credentials="same-origin",k}function O(q){if(q.ep)return;q.ep=!0;const k=Y(q);fetch(q.href,k)}})();var Jb={exports:{}},Lm={},Fb={exports:{}},ic={exports:{}};ic.exports;var Fw;function O5(){return Fw||(Fw=1,(function(y,S){/**
  * @license React
  * react.development.js
