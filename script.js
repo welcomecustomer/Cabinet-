@@ -1,12 +1,12 @@
 // دالة إضافة مريض جديد وحفظه في Firebase
 async function addPatient(patientData) {
-    // 1. جيب الداتا القديمة أو حضر الداتا الجديدة
+    // جيب الداتا القديمة أو حضر الداتا الجديدة
     const currentData = await window.FirebaseCabinet.loadCabinetData() || { patients: [] };
     
-    // 2. زيد المريض الجديد للقائمة
+    // زيد المريض الجديد للقائمة
     currentData.patients.push(patientData);
 
-    // 3. احفظ الداتا الكل في Firebase
+    // احفظ الداتا الكل في Firebase
     const success = await window.FirebaseCabinet.saveCabinetData(currentData);
     
     if (success) {
