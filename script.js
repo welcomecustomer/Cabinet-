@@ -1,26 +1,24 @@
-// داتا تجريبية للتأكد أن الحفظ يخدم
-async function testFirebaseSave() {
-    if (!window.FirebaseCabinet) return;
+// مثال: كيف تكليكي على زر الحفظ أو تزيد مريض
+// دالة إضافة مريض جديد وحفظه في Firebase
+async function addPatient(patientData) {
+    // 1. جيب الداتا القديمة أو حضر الداتا الجديدة
+    const currentData = await window.FirebaseCabinet.loadCabinetData() || { patients: [] };
+    
+    // 2. زيد المريض الجديد للقائمة
+    currentData.patients.push(patientData);
 
-    const testData = {
-        message: "تجربة اتصال ناجحة من التطبيق!",
-        time: new Date().toISOString()
-    };
-
-    const result = await window.FirebaseCabinet.saveCabinetData(testData);
-    if (result) {
-        console.log("✅ تم حفظ داتا التجربة في الفايربيس بنجاح!");
+    // 3. احفظ الداتا الكل في Firebase
+    const success = await window.FirebaseCabinet.saveCabinetData(currentData);
+    
+    if (success) {
+        console.log("✅ اتسجل المريض بنجاح وتعت الـ data للكلاد!");
     }
 }
 
-// استدعيها بعد ما يتحمل التطبيق
-document.addEventListener("DOMContentLoaded", () => {
-    testFirebaseSave();
-});
+// دالة تهيئة التطبيق وتحميل البيانات أول ما يحل الموقع
 async function initApp() {
     console.log("جاري التحقق من اتصال Firebase...");
 
-    // نتأكدوا أن FirebaseCabinet موجود ووقتها نجموا نستعملوه
     if (!window.FirebaseCabinet) {
         console.error("❌ ملف Firebase.sync.js لم يتم تحميله بشكل صحيح!");
         return;
@@ -33,30 +31,38 @@ async function initApp() {
         console.log("✅ لقينا بيانات مخزنة:", savedData);
         // حط الكود متاعك هنا باش تعبي البيانات في الواجهة
     } else {
-        console.log("ℹ️ ما فمش بيانات قديمة.");
+        console.log("📥 ما فمش بيانات قديمة، الداتا فارغة حالياً.");
     }
 
-    // الاستماع للتغييرات في الوقت الفعلي
+    // الاستماع للتغييرات في الوقت الفعلي من أي جهاز آخر
     window.FirebaseCabinet.listenCabinetData((newData) => {
         console.log("🔄 تم تحديث البيانات من جهاز آخر:", newData);
+        if (newData) {
+            // تحديث الواجهة تلقائياً وقت جهاز آخر يبدل حاجة
+            updateUI(newData);
+        }
     });
 }
 
-// تشغيل التطبيق أول ما تحضر الصفحة
-document.addEventListener("DOMContentLoaded", () => {
-    initApp();
-});
-// 1. وقت التحميل: جيب الداتا الحالية من Firebase وحطها في الشاشة
+// دالة تحميل البيانات عند البدء (مصححة من الخطأ المطبعي)
 async function loadDataOnStart() {
     if (!window.FirebaseCabinet) return;
 
     const data = await window.FirebaseCabinet.loadCabinetData();
     if (data) {
-        console.ق("📥 تم جلب البيانات:", data);
-        // حط هنا الكود اللي يعبي الداتا في الـ HTML متاعك (مثلاً يعبي جدول المرضى أو القائمة)
+        console.log("📥 تم جلب البيانات بنجاح:", data);
+        // حط هنا الكود اللي يعبي الداتا في الـ HTML متاعك
         updateUI(data);
+    } else {
+        console.log("📥 الداتا فارغة حالياً.");
     }
 }
+
+// تشغيل التطبيق أول ما تحضر الصفحة
+document.addEventListener("DOMContentLoaded", () => {
+    initApp();
+    loadDataOnStart();
+});
 
 // 2. المزامنة الفورية (Real-time): لو جهاز آخر (مثلاً التليفون) بدل حاجة، الـ PC يتحدث وحده في نفس اللحظة
 function enableRealtimeSync() {
