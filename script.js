@@ -1,4 +1,3 @@
-// مثال: كيف تكليكي على زر الحفظ أو تزيد مريض
 // دالة إضافة مريض جديد وحفظه في Firebase
 async function addPatient(patientData) {
     // 1. جيب الداتا القديمة أو حضر الداتا الجديدة
@@ -29,7 +28,8 @@ async function initApp() {
     
     if (savedData) {
         console.log("✅ لقينا بيانات مخزنة:", savedData);
-        // حط الكود متاعك هنا باش تعبي البيانات في الواجهة
+        // تم تفعيل عرض البيانات في الواجهة فور التحميل
+        updateUI(savedData);
     } else {
         console.log("📥 ما فمش بيانات قديمة، الداتا فارغة حالياً.");
     }
@@ -38,20 +38,19 @@ async function initApp() {
     window.FirebaseCabinet.listenCabinetData((newData) => {
         console.log("🔄 تم تحديث البيانات من جهاز آخر:", newData);
         if (newData) {
-            // تحديث الواجهة تلقائياً وقت جهاز آخر يبدل حاجة
             updateUI(newData);
         }
     });
 }
 
-// دالة تحميل البيانات عند البدء (مصححة من الخطأ المطبعي)
+// دالة تحميل البيانات عند البدء
 async function loadDataOnStart() {
     if (!window.FirebaseCabinet) return;
 
     const data = await window.FirebaseCabinet.loadCabinetData();
     if (data) {
         console.log("📥 تم جلب البيانات بنجاح:", data);
-        // حط هنا الكود اللي يعبي الداتا في الـ HTML متاعك
+        // تم تفعيل عرض البيانات هنا أيضاً
         updateUI(data);
     } else {
         console.log("📥 الداتا فارغة حالياً.");
