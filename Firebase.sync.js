@@ -141,18 +141,18 @@ export async function startSync() {
     await saveCabinetData({ json: lastJson, updatedAt: Date.now() });
   }
 
-  // 2) envoyer chaque changement local vers Firebase
-  const originalSetItem = localStorage.setItem.bind(localStorage);
+    const originalSetItem = Storage.prototype.setItem;
   let timer = null;
-  localStorage.setItem = (k, v) => {
-    originalSetItem(k, v);
-    if (!KEYS.includes(k)) return;
+  Storage.prototype.setItem = function (k, v) {
+    originalSetItem.call(this, k, v);
+    if (this !== localStorage || !KEYS.includes(k)) return;
     clearTimeout(timer);
-    timer = setTimeout(() => {
+    timer = setTimeout(async () => {
       const json = readLocal();
       if (json === lastJson) return;
       lastJson = json;
-      saveCabinetData({ json, updatedAt: Date.now() });
+      const ok = await saveCabinetData({ json, updatedAt: Date.now() });
+      console.log("sync upload:", ok ? "OK" : "ECHEC");
     }, 800);
   };
 

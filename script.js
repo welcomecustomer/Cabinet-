@@ -1,6 +1,9 @@
+// ==========================================
+// إدارة بيانات المرضى والمزامنة مع Firebase
+// ==========================================
+
 // دالة إضافة مريض جديد وحفظه في Firebase
 async function addPatient(patientData) {
-    // جيب الداتا القديمة وتأكد أن فيها patients كـ Array، وإذا كانت فارغة أو بصيغة قديمة صلحتها
     let currentData = await window.FirebaseCabinet.loadCabinetData();
     if (!currentData || !Array.isArray(currentData.patients)) {
         currentData = { patients: [] };
@@ -17,83 +20,53 @@ async function addPatient(patientData) {
     }
 }
 
-// دالة تهيئة التطبيق وتحميل البيانات أول ما يحل الموقع
-async function initApp() {
-    console.log("جاري التحقق من اتصال Firebase...");
-
+// دالة تحميل البيانات عند البدء وتحديث الواجهة
+async function loadDataOnStart() {
     if (!window.FirebaseCabinet) {
         console.error("❌ ملف Firebase.sync.js لم يتم تحميله بشكل صحيح!");
         return;
     }
 
     console.log("جاري تحميل البيانات من Firebase...");
-    const savedData = await window.FirebaseCabinet.loadCabinetData();
-    
-    if (savedData) {
-        console.log("✅ لقينا بيانات مخزنة:", savedData);
-        // تم تفعيل عرض البيانات في الواجهة فور التحميل
-        updateUI(savedData);
-    } else {
-        console.log("📥 ما فمش بيانات قديمة، الداتا فارغة حالياً.");
-    }
-
-    // الاستماع للتغييرات في الوقت الفعلي من أي جهاز آخر
-    window.FirebaseCabinet.listenCabinetData((newData) => {
-        console.log("🔄 تم تحديث البيانات من جهاز آخر:", newData);
-        if (newData) {
-            updateUI(newData);
-        }
-    });
-}
-
-// دالة تحميل البيانات عند البدء
-async function loadDataOnStart() {
-    if (!window.FirebaseCabinet) return;
-
     const data = await window.FirebaseCabinet.loadCabinetData();
+    
     if (data) {
         console.log("📥 تم جلب البيانات بنجاح:", data);
-        // تم تفعيل عرض البيانات هنا أيضاً
         updateUI(data);
     } else {
         console.log("📥 الداتا فارغة حالياً.");
     }
 }
 
-// تشغيل التطبيق أول ما تحضر الصفحة
-document.addEventListener("DOMContentLoaded", () => {
-    initApp();
-    loadDataOnStart();
-});
-
-// 2. المزامنة الفورية (Real-time): لو جهاز آخر (مثلاً التليفون) بدل حاجة، الـ PC يتحدث وحده في نفس اللحظة
+// المزامنة الفورية (Real-time): لو جهاز آخر (مثل التليفون) بدل حاجة، يتحدث وحده
 function enableRealtimeSync() {
     if (!window.FirebaseCabinet) return;
 
     window.FirebaseCabinet.listenCabinetData((newData) => {
         console.log("🔄 وصل تحديث جديد من جهاز آخر!");
-        // حدث الواجهة مباشرة بالداتا الجديدة
-        updateUI(newData);
+        if (newData) {
+            updateUI(newData);
+        }
     });
 }
 
-// 3. وقت المستخدم يزيد أو يبدل حاجة (مثلاً يضغط على زر حفظ)
+// حفظ بيانات عامة من الجهاز
 async function saveDataFromDevice(appData) {
     if (!window.FirebaseCabinet) return;
 
-    // ابعث الداتا للفايربيس، وهكا تو تتبعت لكل الأجهزة (تليفون + PC)
     const success = await window.FirebaseCabinet.saveCabinetData(appData);
     if (success) {
         console.log("✅ تم حفظ البيانات وإرسالها لبقية الأجهزة بنجاح");
     }
 }
 
-// دالة وهمية لتحديث الواجهة (بدلها بالشيء اللي عندك في مشروعك)
+// دالة تحديث الواجهة (عوضها بالدالة اللي تعرض البيانات في الجدول أو الـ HTML متاعك)
 function updateUI(data) {
-    // مثال: عرض الداتا أو تحديث عناصر الـ HTML
+    // مثال: إذا عندك جدول مرضى، تستعمل data.patients للرسم
+    console.log("تحديث الواجهة بالبيانات:", data);
 }
 
-// تشغيل الوظائف أول ما تحضر الصفحة
+// تشغيل الوظائف أول ما تحضر الصفحة (بدون أي تكرار)
 document.addEventListener("DOMContentLoaded", () => {
     loadDataOnStart();
     enableRealtimeSync();
